@@ -283,7 +283,7 @@ with col4:
         alloc_path = os.path.join(SHARED_DIR, f"allocs_{new_id}.csv")
         st.session_state.history.to_csv(hist_path, index=False)
         st.session_state.allocs.to_csv(alloc_path, index=False)
-        st.experimental_set_query_params(share_id=new_id)
+        st.query_params.share_id = new_id
         st.success(f"Share link created: ?share_id={new_id}")
 
 # --- Footer ---
