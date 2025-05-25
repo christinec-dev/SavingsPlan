@@ -18,7 +18,6 @@ import os
 import datetime
 import uuid
 import io
-from fpdf import FPDF
 
 # --- Constants & setup ---
 SHARED_DIR = 'shared_histories'
@@ -240,71 +239,6 @@ with col2:
         file_name="savings_categories.csv",
         mime="text/csv"
     )
-# 3) Generate Report
-# 3) Generate PDF Report
-with col3:
-    if st.button("Generate PDF Report"):
-        # Gather stats
-        total_saved = st.session_state.history['current_saved'].sum()
-        months = max(1, st.session_state.history['timestamp'].dt.to_period('M').nunique())
-        avg_per_month = total_saved / months
-        goal_val = st.session_state.history['goal'].iloc[-1] if not st.session_state.history.empty else 0
-        pct_to_goal = total_saved / max(goal_val, 1)
-
-        # Copy allocations for use
-        alloc_df = st.session_state.allocs.copy()
-        alloc_df['Saved'] = (alloc_df['Goal Allocation'] / max(goal_val, 1) * total_saved).round(2)
-        alloc_df['Remaining'] = (alloc_df['Goal Allocation'] - alloc_df['Saved']).clip(lower=0).round(2)
-
-        # Build PDF
-        pdf = FPDF()
-        pdf.add_page()
-
-        # Title
-        pdf.set_font("Helvetica", 'B', 16)
-        pdf.cell(0, 10, "Savings Report", ln=True)
-        pdf.ln(5)
-
-        # Summary metrics
-        pdf.set_font("Helvetica", '', 12)
-        pdf.cell(0, 8, f"Goal: ZAR {goal_val:,.2f}", ln=True)
-        pdf.cell(0, 8, f"Total Saved: ZAR {total_saved:,.2f}", ln=True)
-        pdf.cell(0, 8, f"Progress: {pct_to_goal*100:.1f}%", ln=True)
-        pdf.ln(5)
-
-        # Categories breakdown
-        pdf.set_font("Helvetica", 'B', 14)
-        pdf.cell(0, 8, "Categories", ln=True)
-        pdf.set_font("Helvetica", '', 12)
-        for _, row in alloc_df.iterrows():
-            pdf.cell(
-                0, 6,
-                f"- {row['Usage']}: Goal ZAR {row['Goal Allocation']:,.2f}, "
-                f"Saved ZAR {row['Saved']:,.2f}, Remaining ZAR {row['Remaining']:,.2f}",
-                ln=True
-            )
-        pdf.ln(5)
-
-        # Recent history
-        pdf.set_font("Helvetica", 'B', 14)
-        pdf.cell(0, 8, "Recent History", ln=True)
-        pdf.set_font("Helvetica", '', 12)
-        recent = st.session_state.history.sort_values('timestamp').tail(5)
-        for _, row in recent.iterrows():
-            ts = row['timestamp']
-            ts_str = ts.strftime('%Y-%m-%d %H:%M') if not isinstance(ts, str) else ts
-            pdf.cell(0, 6, f"{ts_str}: Saved ZAR {row['current_saved']:,.2f}", ln=True)
-        pdf.ln(5)
-        
-        # Serve PDF
-        pdf_bytes = pdf.output(dest='S').encode('latin-1')
-        st.download_button(
-            "Download PDF report",
-            data=pdf_bytes,
-            file_name="savings_report.pdf",
-            mime="application/pdf"
-        )
-
 
 # --- Footer ---
 st.markdown("---")
