@@ -22,7 +22,7 @@ SHARED_DIR = 'shared_histories'
 os.makedirs(SHARED_DIR, exist_ok=True)
 
 # --- Get query params & share_id (as a string) ---
-params = st.experimental_get_query_params()
+params = st.query_params
 share_id = params.get('share_id', [None])[0]
 
 # --- Init session state for history & allocations ---
