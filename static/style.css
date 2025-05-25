@@ -1,0 +1,42 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    color: #333;
+}
+
+h2 {
+    color: #555;
+}
+
+.progress-container {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.progress-bar {
+    height: 30px;
+    background-color: #76c7c0;
+    width: 0;
+    transition: width 0.5s;
+}
+
+.happiness-meter {
+    margin: 20px 0;
+    font-size: 24px;
+}
+
+.happy {
+    color: green;
+}
+
+.sad {
+    color: red;
+}
