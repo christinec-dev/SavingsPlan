@@ -65,12 +65,32 @@ default_goal = (st.session_state.history['goal'].iloc[-1]
 default_monthly = (st.session_state.history['monthly_target'].iloc[-1]
                    if not st.session_state.history.empty else 3000)
 
-goal = st.number_input("Set your total savings goal (ZAR)",
-                       min_value=0, value=int(default_goal), step=500)
-monthly_target = st.number_input("Expected monthly savings (ZAR)",
-                                 min_value=0, value=int(default_monthly), step=500)
-current_saved = st.number_input("Amount saved so far this month (ZAR)",
-                                min_value=0, value=0, step=500)
+goal = st.number_input(
+    "Set your total savings goal (ZAR)",
+    min_value=0,
+    value=int(default_goal),
+    step=500,
+    max_value=None,        # explicitly clear any cap
+    key="goal"   # give it its own key
+)
+
+monthly_target = st.number_input(
+    "Expected monthly savings (ZAR)",
+    min_value=0,
+    value=int(default_monthly),
+    step=500,
+    max_value=None,        # explicitly clear any cap
+    key="monthly_target"   # give it its own key
+)
+
+current_saved = st.number_input(
+    "Amount saved so far this month (ZAR)",
+    min_value=0,
+    value=0,
+    step=500,
+    max_value=None,        # explicitly clear any cap
+    key="current_saved"   # give it its own key
+)
 
 # --- Core calculations & display ---
 progress = current_saved/goal if goal>0 else 0
@@ -209,32 +229,55 @@ if not st.session_state.history.empty:
 else:
     st.write("No entries yet. Save or upload history to get started.")
 
-# --- Share link section ---
-st.markdown("---")
-st.subheader("Collaborate via Share Link")
-if not share_id and not st.session_state.history.empty:
-    if st.button("Generate Share Link"):
-        new_id = uuid.uuid4().hex[:8]
-        shared_file = os.path.join(SHARED_DIR, f"history_{new_id}.csv")
-        st.session_state.history.to_csv(shared_file, index=False)
-        st.query_params.share_id = new_id
-        st.success(f"Share this link: ?share_id={new_id}")
 
-# --- Reset Everything ---
+# --- Data Section ---
 st.markdown("---")
-st.subheader("Clear All Data")
-if st.button("Reset All Data"):
-    st.session_state.history = pd.DataFrame(columns=[
-        'timestamp','goal','monthly_target','current_saved',
-        'remaining','progress_fraction','happiness_fraction'
-    ])
-    st.query_params.clear()
-    st.markdown("""
-        <script>
-          window.history.replaceState(null,null,window.location.pathname);
-          window.location.reload();
-        </script>
-    """, unsafe_allow_html=True)
+st.subheader("Savings Data")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    # Export button
+    if st.button("Export to CSV"):
+        # convert to CSV bytes
+        csv_bytes = st.session_state.history.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="Download History CSV",
+            data=csv_bytes,
+            file_name="savings_history.csv",
+            mime="text/csv"
+        )
+
+with col2:
+    # Clear button
+    if st.button("Clear All Data"):
+        # reset session history
+        st.session_state.history = pd.DataFrame(columns=[
+            'timestamp','goal','monthly_target','current_saved',
+            'remaining','progress_fraction','happiness_fraction'
+        ])
+        # clear any share_id query-param
+        st.query_params.clear()
+        # force a full page reload via JS
+        st.markdown(
+            """
+            <script>
+              window.history.replaceState(null, null, window.location.pathname);
+              window.location.reload();
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
+
+with col3:
+    # Share button
+   if not share_id:
+        if st.button("Generate Share Link"):
+            new_id = uuid.uuid4().hex[:8]
+            shared_file = os.path.join(SHARED_DIR, f"history_{new_id}.csv")
+            st.session_state.history.to_csv(shared_file, index=False)
+            st.query_params.share_id = new_id
+            st.success(f"Share this link: https://savingsplanner.streamlit.app?share_id={new_id}")
 
 # --- Footer ---
 st.markdown("---")
