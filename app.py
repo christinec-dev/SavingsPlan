@@ -271,13 +271,12 @@ with col2:
 
 with col3:
     # Share button
-   if not share_id:
-        if st.button("Generate Share Link"):
-            new_id = uuid.uuid4().hex[:8]
-            shared_file = os.path.join(SHARED_DIR, f"history_{new_id}.csv")
-            st.session_state.history.to_csv(shared_file, index=False)
-            st.query_params.share_id = new_id
-            st.success(f"Share this link: https://savingsplanner.streamlit.app?share_id={new_id}")
+    if st.button("Generate Share Link"):
+        new_id = uuid.uuid4().hex[:8]
+        shared_file = os.path.join(SHARED_DIR, f"history_{new_id}.csv")
+        st.session_state.history.to_csv(shared_file, index=False)
+        st.query_params.share_id = new_id
+        st.success(f"Share this link: https://savingsplanner.streamlit.app?share_id={new_id}")
 
 # --- Footer ---
 st.markdown("---")
